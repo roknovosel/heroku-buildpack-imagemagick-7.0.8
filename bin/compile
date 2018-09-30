@@ -12,7 +12,7 @@ VENDOR_DIR="$BUILD_DIR/vendor"
 mkdir -p $VENDOR_DIR
 INSTALL_DIR="$VENDOR_DIR/imagemagick"
 mkdir -p $INSTALL_DIR
-IMAGE_MAGICK_VERSION="${IMAGE_MAGICK_VERSION:-7.0.8-11}"
+IMAGE_MAGICK_VERSION="${IMAGE_MAGICK_VERSION:-7.0.8-12}"
 CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION.tar.gz"
 
 if [ ! -f $CACHE_FILE ]; then
@@ -37,7 +37,7 @@ if [ ! -f $CACHE_FILE ]; then
   cd $IMAGE_MAGICK_DIR
   export CPPFLAGS="-I$INSTALL_DIR/include"
   export LDFLAGS="-L$INSTALL_DIR/lib"
-  ./configure --prefix=$INSTALL_DIR
+  ./configure --prefix=$INSTALL_DIR  --without-djvu --without-gvc --without-autotrace --without-magick-plus-plus --without-lcms
   make && make install
   cd ..
   rm -rf $IMAGE_MAGICK_DIR
