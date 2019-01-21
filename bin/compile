@@ -72,13 +72,18 @@ else
   # cache exists, extract it
   echo "-----> Extracting ImageMagick $CACHE_FILE => $VENDOR_DIR"
   tar xzf $CACHE_FILE -C $VENDOR_DIR
-
-  cd $CACHE_DIR
-  tar xzf "imagick-cache.tar.gz" -C $VENDOR_DIR
-  cd $VENDOR_DIR
-  cd $IMAGICK_DIR
-  make && make install 
 fi
+
+echo "-----> Downloading imagick package"
+IMAGICK_URL="http://pecl.php.net/get/imagick"
+wget $IMAGICK_URL | indent
+tar zxvf imagick
+cd imagick-3.4.3
+phpize
+export PKG_CONFIG_PATH=$INSTALL_DIR/lib/pkgconfig
+ln -s $INSTALL_DIR/include/ImageMagick-7 $INSTALL_DIR/include/ImageMagick
+./configure --prefix=$INSTALL_DIR --with-imagick=$INSTALL_DIR
+make && make install
 
 echo "-----> Writing policy file"
 mkdir -p $INSTALL_DIR/etc/ImageMagick
@@ -99,3 +104,18 @@ mkdir -p $(dirname $PROFILE_PATH)
 echo "export PATH=$ACTUAL_INSTALL_PATH/bin:\$PATH" >> $PROFILE_PATH
 echo "export LD_LIBRARY_PATH=$ACTUAL_INSTALL_PATH/lib:\$LD_LIBRARY_PATH" >> $PROFILE_PATH
 echo "export MAGICK_CONFIGURE_PATH=$ACTUAL_INSTALL_PATH/etc/ImageMagick-7/" >> $PROFILE_PATH
+
+# DOWNLOAD_URL="http://www.imagemagick.org/download/ImageMagick-6.9.2-0.tar.gz"
+
+# echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
+
+# cd $BUILD_DIR
+# mkdir -p $VENDOR_DIR
+# cd $VENDOR_DIR
+# curl -L --silent $DOWNLOAD_URL | tar xz
+
+# echo "exporting PATH and LIBRARY_PATH" | indent
+# PROFILE_PATH="$BUILD_DIR/.profile.d/imagemagick.sh"
+# mkdir -p $(dirname $PROFILE_PATH)
+# echo 'export PATH="$PATH:$HOME/vendor/ImageMagick-6.9.2/bin"' >> $PROFILE_PATH
+# echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/vendor/ImageMagick-6.9.2/lib"' >> $PROFILE_PATH
