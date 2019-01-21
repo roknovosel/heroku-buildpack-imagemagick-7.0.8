@@ -13,10 +13,14 @@ mkdir -p $VENDOR_DIR
 INSTALL_DIR="$VENDOR_DIR/imagemagick"
 mkdir -p $INSTALL_DIR
 IMAGE_MAGICK_VERSION="${IMAGE_MAGICK_VERSION:-7.0.8-24}"
+IMAGICK_VERSION="3.4.3"
+IMAGICK_URL="http://pecl.php.net/get/imagick-$IMAGICK_VERSION.tgz"
+IMAGICK_DIR="imagick-$IMAGICK_VERSION"
 CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION.tar.gz"
 
 export CPPFLAGS="-I$INSTALL_DIR/include"
 export LDFLAGS="-L$INSTALL_DIR/lib"
+export PKG_CONFIG_PATH=$INSTALL_DIR/lib/pkgconfig
 
 if [ ! -f $CACHE_FILE ]; then
   # install imagemagick
@@ -43,6 +47,16 @@ if [ ! -f $CACHE_FILE ]; then
   cd ..
   rm -rf $IMAGE_MAGICK_DIR
 
+  echo "-----> Downloading imagick package"
+  wget $IMAGICK_URL | indent
+  tar zxvf "$IMAGICK_DIR.tgz"
+  cd $IMAGICK_DIR
+  phpize
+  ln -s $INSTALL_DIR/include/ImageMagick-7 $INSTALL_DIR/include/ImageMagick
+  ./configure --prefix=$INSTALL_DIR --with-imagick=$INSTALL_DIR
+  make && make install
+  cd ..
+
   # cache for future deploys
   echo "-----> Caching ImageMagick installation"
   cd $VENDOR_DIR
@@ -50,26 +64,20 @@ if [ ! -f $CACHE_FILE ]; then
   tar czf $REL_INSTALL_DIR.tar.gz $REL_INSTALL_DIR
   mv $REL_INSTALL_DIR.tar.gz $CACHE_FILE
 
+  echo "Caching imagick"
+  tar czf "imagick-cache.tar.gz" $IMAGICK_DIR
+  mv "imagick-cache.tar.gz" $CACHE_DIR
 else
   # cache exists, extract it
   echo "-----> Extracting ImageMagick $CACHE_FILE => $VENDOR_DIR"
   tar xzf $CACHE_FILE -C $VENDOR_DIR
-fi
 
-echo "-----> Downloading imagick package"
-echo $VENDOR_DIR
-echo $INSTALL_DIR
-ls -la $VENDOR_DIR
-ls -la $INSTALL_DIR
-IMAGICK_URL="http://pecl.php.net/get/imagick"
-wget $IMAGICK_URL | indent
-tar zxvf imagick
-cd imagick-3.4.3
-phpize
-export PKG_CONFIG_PATH=$INSTALL_DIR/lib/pkgconfig
-ln -s $INSTALL_DIR/include/ImageMagick-7 $INSTALL_DIR/include/ImageMagick
-./configure --prefix=$INSTALL_DIR --with-imagick=$INSTALL_DIR
-make && make install
+  cd $CACHE_DIR
+  tar xzf "imagick-cache.tar.gz" -C $VENDOR_DIR
+  cd $VENDOR_DIR
+  cd $IMAGICK_DIR
+  make install 
+fi
 
 echo "-----> Writing policy file"
 mkdir -p $INSTALL_DIR/etc/ImageMagick
