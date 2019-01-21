@@ -60,7 +60,7 @@ if [ ! -f $CACHE_FILE ]; then
   echo "Caching imagick"
   tar czf "imagick-cache.tar.gz" $IMAGICK_DIR
   mv "imagick-cache.tar.gz" $CACHE_DIR
-  
+
   # cache for future deploys
   echo "-----> Caching ImageMagick installation"
   cd $VENDOR_DIR
@@ -77,7 +77,7 @@ else
   tar xzf "imagick-cache.tar.gz" -C $VENDOR_DIR
   cd $VENDOR_DIR
   cd $IMAGICK_DIR
-  make install 
+  make && make install 
 fi
 
 echo "-----> Writing policy file"
