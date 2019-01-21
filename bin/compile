@@ -74,6 +74,12 @@ else
   tar xzf $CACHE_FILE -C $VENDOR_DIR
 fi
 
+# Recreate image magick in original dir
+IM_PREFIX=$(dirname `$INSTALL_DIR/MagickWand-config --prefix`)
+mkdir -p $IM_PREFIX
+tar xzf $CACHE_FILE -C $IM_PREFIX
+IM_INSTALL_DIR="$IM_PREFIX/imagemagick"
+
 echo "-----> Downloading imagick package"
 IMAGICK_URL="http://pecl.php.net/get/imagick"
 wget $IMAGICK_URL | indent
@@ -83,7 +89,7 @@ phpize
 export PKG_CONFIG_PATH=$INSTALL_DIR/lib/pkgconfig
 # ln -s $INSTALL_DIR/include/ImageMagick-7 $INSTALL_DIR/include/ImageMagick
 rm "$INSTALL_DIR/include/ImageMagick"
-./configure --prefix=$INSTALL_DIR --with-imagick=$INSTALL_DIR
+./configure --prefix=$IM_INSTALL_DIR --with-imagick=$IM_INSTALL_DIR
 make && make install
 
 echo "-----> Writing policy file"
