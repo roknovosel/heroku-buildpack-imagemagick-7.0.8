@@ -15,6 +15,9 @@ mkdir -p $INSTALL_DIR
 IMAGE_MAGICK_VERSION="${IMAGE_MAGICK_VERSION:-7.0.8-24}"
 CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION.tar.gz"
 
+export CPPFLAGS="-I$INSTALL_DIR/include"
+export LDFLAGS="-L$INSTALL_DIR/lib"
+
 if [ ! -f $CACHE_FILE ]; then
   # install imagemagick
   IMAGE_MAGICK_FILE="ImageMagick-$IMAGE_MAGICK_VERSION.tar.xz"
@@ -35,8 +38,6 @@ if [ ! -f $CACHE_FILE ]; then
 
   echo "-----> Building ImageMagick"
   cd $IMAGE_MAGICK_DIR
-  export CPPFLAGS="-I$INSTALL_DIR/include"
-  export LDFLAGS="-L$INSTALL_DIR/lib"
   ./configure --prefix=$INSTALL_DIR --enable-shared --enable-symbol-prefix --without-openexr --with-wmf=no --without-djvu --without-gvc --without-autotrace --without-magick-plus-plus --without-lcms
   make && make install
   cd ..
