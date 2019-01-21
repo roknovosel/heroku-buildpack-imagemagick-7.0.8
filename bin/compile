@@ -13,9 +13,6 @@ mkdir -p $VENDOR_DIR
 INSTALL_DIR="$VENDOR_DIR/imagemagick"
 mkdir -p $INSTALL_DIR
 IMAGE_MAGICK_VERSION="${IMAGE_MAGICK_VERSION:-7.0.8-24}"
-IMAGICK_VERSION="3.4.3"
-IMAGICK_URL="http://pecl.php.net/get/imagick-$IMAGICK_VERSION.tgz"
-IMAGICK_DIR="imagick-$IMAGICK_VERSION"
 CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION.tar.gz"
 
 export CPPFLAGS="-I$INSTALL_DIR/include"
@@ -42,24 +39,10 @@ if [ ! -f $CACHE_FILE ]; then
 
   echo "-----> Building ImageMagick"
   cd $IMAGE_MAGICK_DIR
-  ./configure --prefix=$INSTALL_DIR --enable-shared --enable-symbol-prefix --without-openexr --with-wmf=no --without-djvu --without-gvc --without-autotrace --without-magick-plus-plus --without-lcms
+  ./configure --prefix=$INSTALL_DIR --enable-shared --without-openexr --with-wmf=no --without-djvu --without-gvc --without-autotrace --without-magick-plus-plus --without-lcms
   make && make install
   cd ..
   rm -rf $IMAGE_MAGICK_DIR
-
-  echo "-----> Downloading imagick package"
-  wget $IMAGICK_URL | indent
-  tar zxvf "$IMAGICK_DIR.tgz"
-  cd $IMAGICK_DIR
-  phpize
-  ln -s $INSTALL_DIR/include/ImageMagick-7 $INSTALL_DIR/include/ImageMagick
-  ./configure --prefix=$INSTALL_DIR --with-imagick=$INSTALL_DIR
-  make && make install
-  cd ..
-
-  echo "Caching imagick"
-  tar czf "imagick-cache.tar.gz" $IMAGICK_DIR
-  mv "imagick-cache.tar.gz" $CACHE_DIR
 
   # cache for future deploys
   echo "-----> Caching ImageMagick installation"
@@ -74,13 +57,16 @@ else
   tar xzf $CACHE_FILE -C $VENDOR_DIR
 fi
 
-# export PATH=$INSTALL_DIR/bin:$PATH
-# Recreate image magick in original dir
+# When ImageMagick was compiled it was configured with a different prefix.
+# On each new deploy we are operating in new directories so the current $VENDOR_DIR
+# won't match the original ImageMagick prefix. In the next line we extract the original
+# prefix and recreate the original file structure
 IM_PREFIX=$(dirname `$INSTALL_DIR/bin/MagickWand-config --prefix`)
 mkdir -p $IM_PREFIX
 tar xzf $CACHE_FILE -C $IM_PREFIX
 IM_INSTALL_DIR="$IM_PREFIX/imagemagick"
 
+# Compile and install the imagick package
 echo "-----> Downloading imagick package"
 IMAGICK_URL="http://pecl.php.net/get/imagick"
 wget $IMAGICK_URL | indent
@@ -88,8 +74,10 @@ tar zxvf imagick
 cd imagick-3.4.3
 phpize
 export PKG_CONFIG_PATH=$INSTALL_DIR/lib/pkgconfig
-# ln -s $INSTALL_DIR/include/ImageMagick-7 $INSTALL_DIR/include/ImageMagick
+# $INSTALL_DIR/include/ImageMagick is a link to a directory which might not exist, so we remove it
+# to prevent confusion with $INSTALL_DIR/include/ImageMagick-7
 rm "$INSTALL_DIR/include/ImageMagick"
+# Here we're using the original ImageMagick compilation directory
 ./configure --prefix=$IM_INSTALL_DIR --with-imagick=$IM_INSTALL_DIR
 make && make install
 
@@ -112,18 +100,3 @@ mkdir -p $(dirname $PROFILE_PATH)
 echo "export PATH=$ACTUAL_INSTALL_PATH/bin:\$PATH" >> $PROFILE_PATH
 echo "export LD_LIBRARY_PATH=$ACTUAL_INSTALL_PATH/lib:\$LD_LIBRARY_PATH" >> $PROFILE_PATH
 echo "export MAGICK_CONFIGURE_PATH=$ACTUAL_INSTALL_PATH/etc/ImageMagick-7/" >> $PROFILE_PATH
-
-# DOWNLOAD_URL="http://www.imagemagick.org/download/ImageMagick-6.9.2-0.tar.gz"
-
-# echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
-
-# cd $BUILD_DIR
-# mkdir -p $VENDOR_DIR
-# cd $VENDOR_DIR
-# curl -L --silent $DOWNLOAD_URL | tar xz
-
-# echo "exporting PATH and LIBRARY_PATH" | indent
-# PROFILE_PATH="$BUILD_DIR/.profile.d/imagemagick.sh"
-# mkdir -p $(dirname $PROFILE_PATH)
-# echo 'export PATH="$PATH:$HOME/vendor/ImageMagick-6.9.2/bin"' >> $PROFILE_PATH
-# echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/vendor/ImageMagick-6.9.2/lib"' >> $PROFILE_PATH
