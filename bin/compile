@@ -74,8 +74,9 @@ else
   tar xzf $CACHE_FILE -C $VENDOR_DIR
 fi
 
+# export PATH=$INSTALL_DIR/bin:$PATH
 # Recreate image magick in original dir
-IM_PREFIX=$(dirname `$INSTALL_DIR/MagickWand-config --prefix`)
+IM_PREFIX=$(dirname `$INSTALL_DIR/bin/MagickWand-config --prefix`)
 mkdir -p $IM_PREFIX
 tar xzf $CACHE_FILE -C $IM_PREFIX
 IM_INSTALL_DIR="$IM_PREFIX/imagemagick"
