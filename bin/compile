@@ -82,6 +82,7 @@ cd imagick-3.4.3
 phpize
 export PKG_CONFIG_PATH=$INSTALL_DIR/lib/pkgconfig
 # ln -s $INSTALL_DIR/include/ImageMagick-7 $INSTALL_DIR/include/ImageMagick
+rm "$INSTALL_DIR/include/ImageMagick"
 ./configure --prefix=$INSTALL_DIR --with-imagick=$INSTALL_DIR
 make && make install
 
